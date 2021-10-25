@@ -5,7 +5,7 @@ import os.path
 import os
 import ctypes
 import subprocess
-
+import sys
 import tkinter
 from tkinter import filedialog 
 
@@ -13,13 +13,13 @@ dir = os.path.join("C:\\","User",os.path.expanduser("~"),"AppData","Roaming","Ph
 
 if not os.path.exists(dir):
     os.mkdir(dir)
-if not os.path.exists(os.path.join(dir,"instructions.txt")):
+if os.path.exists(os.path.join(dir,"instructions.txt")):
+    os.remove(os.path.join(dir,"instructions.txt"))
     instructions = open(os.path.join(dir,"instructions.txt"),"a+")
     instructions.write("1.) Select Image File To Open \n2.) Select Preset File To Open (These are located at %appdata%\\Roaming\\PhotoPhiler\\Saves) \n3.) Adjust Sliders Until Desired Effect Has Been Achieved\n   a.) Each Settings Window contains the layers that they contain in the name of the window\n   b.) C# Red changes the red value, C# Green changes the green value, C# Blue changes the blue value, C# GS HR changes the highest value of grey changed,\n   and C# GS LS changes the lowest value of grey changed\n4.) Press Either W or S, W will save the current sliders to a preset. S will open a prompt to save the image to a desired location\n5.) Press E or Esc to close the program")
-    print(instructions)
     instructions.close()
 process = subprocess.Popen(["notepad.exe", os.path.join(dir,"instructions.txt")]) 
-
+process2 = subprocess.Popen([r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe", "https://docs.google.com/document/d/18ZeBnJqNAuAlwdPR0Fj1E-AmlTZ2Q_6R1zAAzo5wZL8/view"])
 blank = numpy.zeros((6,5,1),numpy.uint8)
 
 if not os.path.exists(os.path.join(dir,"saves")):
@@ -30,8 +30,14 @@ if not os.path.exists(os.path.join(dir,"saves","Blank.png")):
     cv2.imwrite(os.path.join(dir,"saves","Blank.png"),blank)
 
 tkinter.Tk().withdraw() # prevents an empty tkinter window from appearing
-filename = filedialog.askopenfile(filetypes = [(".png, .jpg, .jpeg, .jfif",".png; .jpg; .jpeg; .jfif")],title = "Select Image File To Open",initialdir = os.path.join("C:\\","User",os.path.expanduser("~"),"Downloads"),multiple = False).name
-
+filename = filedialog.askopenfile(filetypes = [(".png, .jpg, .jpeg, .jfif",".png; .jpg; .jpeg; .jfif")],title = "Select Image File To Open",initialdir = os.path.join("C:\\","User",os.path.expanduser("~"),"Downloads"),multiple = False)
+if filename == None:
+    process.terminate()
+    print(process2)
+    process2.terminate()
+    sys.exit()
+else:
+    filename.name
 user32 = ctypes.windll.user32
 screensize = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
 
@@ -102,11 +108,6 @@ setting = numpy.zeros((50,950,image_channels), numpy.uint8)
 setting[0:50,0:950,0:image_channels] = [210,210,210]
 cv2.imshow("Settings Window (Colors 1 - 3)",setting)
 cv2.imshow("Settings Window (Colors 4 - 6)",setting)
-
-
-
-
-
 
 def reload():
     
@@ -520,10 +521,13 @@ while key != ord('e') and key != 27:
         savename = filedialog.asksaveasfilename(filetypes = [(".jpg",".jpg"),(".png",".png"),(".jpeg",".jpeg"),(".jfif",".jfif")],defaultextension  = ".jpg",title = "Save Image",initialdir = os.path.join("C:\\","Users",os.path.expanduser("~"),"Downloads"))
         if(savename != ""):
             cv2.imwrite(savename,output)
+            
     elif(key == ord('w')):
         savename = filedialog.asksaveasfilename(defaultextension  = ".png",title = "Save Preset",initialdir = os.path.join(dir,"saves"))
         if(savename != ""):
             cv2.imwrite(savename, numpy.array(saveImage(),dtype = "uint8"))
 cv2.destroyAllWindows()
 process.terminate()
+process2.terminate()
+
 
